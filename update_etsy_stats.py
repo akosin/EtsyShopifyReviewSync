@@ -135,8 +135,8 @@ for r in reviews_resp["results"]:
 # Randomize reviews for carousel
 review_list = random.sample(review_list, min(20, len(review_list)))
 
-with open(f"{OUTPUT_DIR}/etsy-reviews.json", "w") as f:
-    json.dump(review_list, f, indent=2, ensure_ascii=False)
+with open(f"{OUTPUT_DIR}/etsy-reviews.json", "w", encoding="utf-8") as f:
+    json.dump({"reviews": review_list}, f, indent=2, ensure_ascii=False)
 
 # -----------------------------
 # Get recent purchases
