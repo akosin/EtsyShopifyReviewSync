@@ -1,6 +1,7 @@
 import commentjson as json
 import requests
 import random
+import html
 
 CONFIG_PATH = "/home/pi/unified-orders/appsettings.json"
 
@@ -99,29 +100,30 @@ review_list = []
 listing_cache = {}
 
 for r in reviews_resp["results"]:
-
     rating = r.get("rating", 0)
     text = r.get("review")
 
-    if text and rating >= 4:
+    if text:
+        text = html.unescape(text).strip()
 
+    if text and rating >= 4:
         listing_id = r.get("listing_id")
 
         # lookup listing title once and cache it
         if listing_id not in listing_cache:
-
             listing_resp = requests.get(
                 f"https://openapi.etsy.com/v3/application/listings/{listing_id}",
                 headers=headers
             ).json()
 
-            listing_cache[listing_id] = listing_resp.get("title", "this item")
+            raw_title = listing_resp.get("title", "this item")
+            listing_cache[listing_id] = html.unescape(raw_title).strip()
 
         title = listing_cache[listing_id]
 
         # shorten very long titles
         if len(title) > 45:
-            title = title[:42] + "..."
+            title = title[:42].rstrip() + "..."
 
         review_list.append({
             "name": "Etsy Customer",
@@ -134,7 +136,7 @@ for r in reviews_resp["results"]:
 review_list = random.sample(review_list, min(20, len(review_list)))
 
 with open(f"{OUTPUT_DIR}/etsy-reviews.json", "w") as f:
-    json.dump({"reviews": review_list}, f, indent=2)
+    json.dump(review_list, f, indent=2, ensure_ascii=False)
 
 # -----------------------------
 # Get recent purchases
